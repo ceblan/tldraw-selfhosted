@@ -32,6 +32,15 @@ export const diagramParameters = Type.Object({
 	layout: Type.Optional(StringEnum(["horizontal", "vertical"])),
 });
 
+export const updateDiagramParameters = Type.Object({
+	boardId: Type.String({
+		pattern: "^pi-[a-zA-Z0-9_-]+$",
+		maxLength: 132,
+		description: "Existing generated board id to replace after visual review",
+	}),
+	...diagramParameters.properties,
+});
+
 export const boardResultSchema = Type.Object({
 	boardId: Type.String(),
 	url: Type.String({ format: "uri" }),
@@ -40,4 +49,5 @@ export const boardResultSchema = Type.Object({
 });
 
 export type DiagramInput = Static<typeof diagramParameters>;
+export type UpdateDiagramInput = Static<typeof updateDiagramParameters>;
 export type BoardResult = Static<typeof boardResultSchema>;

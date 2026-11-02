@@ -26,9 +26,20 @@ describe('semantic diagram translation', () => {
 			const node = room.getRecord(shapeIdForNode('operator'))!
 			expect(node).toMatchObject({ typeName: 'shape', type: 'geo', x: 0, y: 0 })
 			expect((node as any).props.richText).toEqual(toRichText('Operator'))
+			expect((node as any).props.w).toBeGreaterThanOrEqual(300)
+			expect((node as any).props.h).toBeGreaterThanOrEqual(140)
+			expect((node as any).props.size).toBe('l')
 			const records = room.getCurrentSnapshot().documents.map((entry) => entry.state)
-			expect(records.filter((record) => record.typeName === 'shape')).toHaveLength(5)
+			expect(records.filter((record) => record.typeName === 'shape')).toHaveLength(6)
 			expect(records.filter((record) => record.typeName === 'binding')).toHaveLength(4)
+			const edgeLabel = records.find(
+				(record) => record.typeName === 'shape' && (record as any).type === 'text',
+			)
+			expect((edgeLabel as any).props.richText).toEqual(toRichText('ask'))
+			const arrows = records.filter(
+				(record) => record.typeName === 'shape' && (record as any).type === 'arrow',
+			)
+			expect(arrows.every((arrow: any) => arrow.props.richText.content[0].content === undefined)).toBe(true)
 		} finally {
 			room.close()
 		}
@@ -48,9 +59,11 @@ describe('semantic diagram translation', () => {
 				],
 			}),
 		)
-		const nodes = records.filter((record) => record.typeName === 'shape' && record.type === 'geo')
+		const nodes = records.filter((record) => record.typeName === 'shape' && (record as any).type === 'geo')
 		expect(nodes).toHaveLength(3)
 		expect(new Set(nodes.map((node: any) => `${node.x},${node.y}`)).size).toBe(3)
+		const arrows = records.filter((record) => record.typeName === 'shape' && (record as any).type === 'arrow')
+		expect(arrows.some((arrow: any) => arrow.props.kind === 'elbow')).toBe(true)
 	})
 
 	// @lat: [[tests#Diagram translation#Rejects malformed diagrams]]

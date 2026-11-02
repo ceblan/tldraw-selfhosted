@@ -64,13 +64,15 @@ Response:
 }
 ```
 
-The URL is the editable room URL. `PUBLIC_BASE_URL` controls the returned URL; it does not configure a reverse proxy or public access. Node labels are plain text, node kinds are `rectangle`, `ellipse`, or `diamond`, and layout is `horizontal` or `vertical`. The request is limited to 50 nodes, 100 edges, and 64 KiB.
+The URL is the editable room URL. `PUBLIC_BASE_URL` controls the returned URL; it does not configure a reverse proxy or public access. Node labels are plain text, node kinds are `rectangle`, `ellipse`, or `diamond`, and layout is `horizontal` or `vertical`. The server wraps and sizes labels conservatively, uses large type, reserves bands for long acyclic flows, routes feedback with elbow arrows, and keeps edge labels off connector lines. The request is limited to 50 nodes, 100 edges, and 64 KiB.
+
+`PUT /api/pi/v1/boards/:boardId` accepts the same diagram body and bearer authentication, replaces an existing generated board in place, and returns the same URL with status 200. It is intended for visual revisions, not merging manual edits; a missing generated board returns 404.
 
 ## Implementation boundaries
 
 - `diagram.ts` validates Pi's versioned input contract.
-- `diagram-records.ts` performs deterministic layout and schema-validated tldraw record generation, including arrow bindings.
-- `RoomStore.createBoard()` commits those records in one `TLSocketRoom.updateStore()` transaction and atomically persists the snapshot before returning.
+- `diagram-records.ts` performs deterministic layered layout, conservative text wrapping, larger shape sizing, schema-validated tldraw record generation, explicit arrow anchors, and detached edge labels.
+- `RoomStore.createBoard()` commits records in one `TLSocketRoom.updateStore()` transaction and atomically persists the snapshot before returning; `RoomStore.updateBoard()` does the same in place for visual revisions.
 - `pi-api.ts` adds bearer authentication, bounded JSON input, and structured errors. No service token is placed in the board URL.
 - `server.node.ts` retains the original browser collaboration plane and wires the control plane into the same process.
 
@@ -78,7 +80,7 @@ Writes are not performed by a second process against `.rooms` files. All tldraw 
 
 ## Pi skill and extension
 
-The `pi/tldraw` package provides `tldraw_create_diagram` and the `tldraw-diagrams` skill. It reads configuration from `~/.config/pi/tldraw.json` and a separate protected key file, then returns both a clickable URL and structured board metadata. See [its README](pi/tldraw/README.md) for installation and configuration.
+The `pi/tldraw` package provides `tldraw_create_diagram`, `tldraw_update_diagram`, and the `tldraw-diagrams` skill. It reads configuration from `~/.config/pi/tldraw.json` and a separate protected key file, then returns a clickable URL, structured board metadata, and a real PNG preview. The skill requires visual inspection and in-place revision before delivery. Preview uses local Chromium and tldraw's browser-only `editor.toImage()` API; no external screenshot service is involved. See [its README](pi/tldraw/README.md) for installation and configuration.
 
 ## EMACS-30 development service
 
@@ -104,4 +106,4 @@ Before production, the remaining work includes browser room/asset authorization,
 
 ## Licensing
 
-The wrapper retains the upstream MIT license. The tldraw SDK is source-available under its own [license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md), not a permissive open-source license. Development is allowed by the default terms; production requires an appropriate active license.
+The wrapper retains the upstream MIT license. The tldraw SDK is source-available under its own [license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md), not a permissive open-source license. Development is allowed by the default terms; production requires an appropriate active license. An approved hobby license authorizes personal/non-commercial production within its host and validity conditions and requires the watermark; it does not unlock a different SDK API.

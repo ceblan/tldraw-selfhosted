@@ -175,6 +175,16 @@ export class RoomStore {
 		if (state.saveError) throw state.saveError
 	}
 
+	private async replaceGeneratedContent(state: RoomState, diagram: FlowchartDiagram) {
+		await state.room.updateStore((store) => {
+			for (const record of store.getAll()) {
+				if (['page', 'shape', 'binding'].includes(record.typeName)) store.delete(record)
+			}
+			for (const record of diagramToRecords(diagram)) store.put(record)
+		})
+		await this.flushRoom(state.id)
+	}
+
 	/** Create through the live room abstraction and persist before advertising its URL. */
 	// @lat: [[architecture#Room persistence]]
 	createBoard(diagram: FlowchartDiagram): Promise<BoardCreationResult> {
@@ -183,20 +193,29 @@ export class RoomStore {
 			const state = this.loadRoom(boardId)
 			this.rooms.set(boardId, state)
 			try {
-				await state.room.updateStore((store) => {
-					// A new SDK room already has a default page; replace it rather than
-					// leaving clients on an empty page next to the generated one.
-					for (const record of store.getAll()) {
-						if (record.typeName === 'page') store.delete(record)
-					}
-					for (const record of diagramToRecords(diagram)) store.put(record)
-				})
-				await this.flushRoom(boardId)
+				await this.replaceGeneratedContent(state, diagram)
 			} catch (error) {
 				state.room.close()
 				this.rooms.delete(boardId)
 				throw error
 			}
+			return { boardId, snapshotVersion: state.room.getCurrentDocumentClock() }
+		})
+	}
+
+	/** Replace a generated board in place so visual revisions do not create duplicate rooms. */
+	// @lat: [[architecture#Visual revision workflow]]
+	async updateBoard(boardId: string, diagram: FlowchartDiagram): Promise<BoardCreationResult | undefined> {
+		if (!/^pi-[a-zA-Z0-9_-]+$/.test(boardId)) return undefined
+		return this.exclusive(async () => {
+			let state = this.rooms.get(boardId)
+			if (!state || state.room.isClosed()) {
+				const snapshot = await this.readSnapshotIfExists(boardId)
+				if (!snapshot) return undefined
+				state = this.loadRoom(boardId, snapshot)
+				this.rooms.set(boardId, state)
+			}
+			await this.replaceGeneratedContent(state, diagram)
 			return { boardId, snapshotVersion: state.room.getCurrentDocumentClock() }
 		})
 	}

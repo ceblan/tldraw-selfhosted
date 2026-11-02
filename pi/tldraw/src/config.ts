@@ -6,12 +6,16 @@ export interface TldrawClientConfig {
 	baseUrl: string;
 	apiKey: string;
 	timeoutMs?: number;
+	preview: boolean;
+	chromiumPath: string;
 }
 
 interface ConfigFile {
 	baseUrl?: string;
 	apiKeyFile?: string;
 	timeoutMs?: number;
+	preview?: boolean;
+	chromiumPath?: string;
 }
 
 export interface ResolveConfigOptions {
@@ -31,13 +35,16 @@ async function readConfigFile(path: string): Promise<ConfigFile> {
 		const value: unknown = JSON.parse(await readFile(path, "utf8"));
 		if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("not an object");
 		const config = value as Record<string, unknown>;
-		for (const key of ["baseUrl", "apiKeyFile"]) {
+		for (const key of ["baseUrl", "apiKeyFile", "chromiumPath"]) {
 			if (config[key] !== undefined && typeof config[key] !== "string") {
 				throw new Error(`${key} must be a string`);
 			}
 		}
 		if (config.timeoutMs !== undefined && typeof config.timeoutMs !== "number") {
 			throw new Error("timeoutMs must be a number");
+		}
+		if (config.preview !== undefined && typeof config.preview !== "boolean") {
+			throw new Error("preview must be a boolean");
 		}
 		return config as ConfigFile;
 	} catch (error) {
@@ -77,5 +84,9 @@ export async function resolveConfig(options: ResolveConfigOptions = {}): Promise
 		baseUrl: env.TLDRAW_PI_API_URL ?? file.baseUrl ?? "http://127.0.0.1:3012",
 		apiKey,
 		timeoutMs: env.TLDRAW_PI_TIMEOUT_MS ? Number(env.TLDRAW_PI_TIMEOUT_MS) : file.timeoutMs,
+		preview: env.TLDRAW_PI_PREVIEW
+			? !["0", "false", "no"].includes(env.TLDRAW_PI_PREVIEW.toLowerCase())
+			: (file.preview ?? true),
+		chromiumPath: env.TLDRAW_PI_CHROMIUM ?? file.chromiumPath ?? "chromium",
 	};
 }

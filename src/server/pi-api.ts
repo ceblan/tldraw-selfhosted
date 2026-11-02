@@ -5,6 +5,10 @@ import type { BoardCreationResult } from './rooms.js'
 
 interface BoardService {
 	createBoard(diagram: ReturnType<typeof parseDiagram>): Promise<BoardCreationResult>
+	updateBoard(
+		boardId: string,
+		diagram: ReturnType<typeof parseDiagram>,
+	): Promise<BoardCreationResult | undefined>
 }
 
 /** A narrow, authenticated control plane; browser sync remains separate from this contract. */
@@ -35,6 +39,32 @@ export function registerPiApi(app: FastifyInstance, config: PiApiConfig, service
 				request.log.error(error)
 				return reply.code(500).send({
 					error: { code: 'board_creation_failed', message: 'Could not create the board' },
+				})
+			}
+		})
+		api.put('/api/pi/v1/boards/:boardId', async (request, reply) => {
+			if (!authorizePiRequest(request, reply, config)) return
+			try {
+				const diagram = parseDiagram(request.body)
+				const { boardId } = request.params as { boardId: string }
+				const board = await service.updateBoard(boardId, diagram)
+				if (!board) {
+					return reply.code(404).send({
+						error: { code: 'board_not_found', message: 'The generated board does not exist' },
+					})
+				}
+				return reply.send({
+					...board,
+					url: `${config.publicBaseUrl}/${encodeURIComponent(board.boardId)}`,
+					tldrawSdkVersion: TLDRAW_SDK_VERSION,
+				})
+			} catch (error) {
+				if (error instanceof DiagramValidationError) {
+					return reply.code(400).send({ error: { code: 'invalid_diagram', message: error.message } })
+				}
+				request.log.error(error)
+				return reply.code(500).send({
+					error: { code: 'board_update_failed', message: 'Could not update the board' },
 				})
 			}
 		})

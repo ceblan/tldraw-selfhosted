@@ -10,13 +10,25 @@ Pi sends a small versioned flowchart model instead of arbitrary SDK records so v
 
 ## Diagram translation
 
-The server converts the semantic model into ordinary tldraw pages, shapes, and arrow bindings with a deterministic layered layout.
+The server converts the semantic model into ordinary tldraw pages, shapes, text labels, and arrow bindings with deterministic layered layout and conservative text sizing.
 
-[[src/server/diagram-records.ts#diagramToRecords]] uses the exact tldraw 4.0.2 schema and record constructors. Cycles are placed in fallback layers rather than causing an unbounded topological walk. Browser rendering remains responsible for final arrow geometry and visual editing.
+[[src/server/diagram-records.ts#diagramToRecords]] uses the exact tldraw 4.0.2 schema and record constructors. Large wrapped nodes reduce clipping, long acyclic flows use bands, feedback stays in one band, explicit anchors route elbow returns, and detached text labels avoid lines through text. Browser rendering remains responsible for final geometry and visual editing.
+
+## Visual preview
+
+The Pi extension attaches a real PNG export so the model must inspect the board before presenting it as finished.
+
+[[pi/tldraw/src/preview.ts#renderBoardPreview]] drives local headless Chromium through CDP and calls tldraw's browser-only `editor.toImage()` API. It exports the synchronized page without editor chrome, bounds image size, and cleans up its temporary browser profile. Preview failure preserves the saved board URL and never triggers another creation request.
+
+## Visual revision workflow
+
+A generated board can be replaced in place after visual review, preserving its public URL and avoiding duplicate boards.
+
+[[src/server/rooms.ts#RoomStore#updateBoard]] replaces pages, shapes, and bindings through the authoritative live room and flushes before responding. [[pi/tldraw/src/api.ts#updateBoard]] sends one authenticated PUT. The update is destructive rather than a merge with manual edits, and a missing generated board returns 404.
 
 ## Pi board API
 
-An explicitly enabled bearer-authenticated endpoint creates a board and returns its editor URL, document clock, and SDK version.
+An explicitly enabled bearer-authenticated endpoint creates or replaces a board and returns its editor URL, document clock, and SDK version.
 
 [[src/server/pi-api.ts#registerPiApi]] owns request parsing, size limits, authentication, and structured errors. The service token never appears in the returned URL. The API is disabled by default and does not authenticate the separate browser collaboration plane.
 
@@ -46,15 +58,15 @@ The build uses a frozen dependency lockfile, a digest-pinned Node base image, a 
 
 ## Pi client package
 
-A local Pi package pairs semantic diagram guidance with an executable client that returns an editable board URL.
+A local Pi package pairs semantic diagram guidance with executable create/update clients, editable URLs, and visual previews.
 
-[[pi/tldraw/extensions/tldraw-create-diagram.ts#tldrawExtension]] registers `tldraw_create_diagram`; the bundled `tldraw-diagrams` skill guides semantic extraction. [[pi/tldraw/src/api.ts#createBoard]] performs one bounded HTTP request without automatic retries, validates the response, and returns structured output without credentials.
+[[pi/tldraw/extensions/tldraw-create-diagram.ts#tldrawExtension]] registers `tldraw_create_diagram` and `tldraw_update_diagram`; the bundled `tldraw-diagrams` skill requires create → inspect → revise → inspect before delivery. [[pi/tldraw/src/api.ts#createBoard]] performs bounded HTTP requests without automatic retries, validates responses, and returns structured output without credentials.
 
 ## Client configuration
 
 The Pi client resolves its URL and service token only when the tool executes, keeping secrets outside source control and board URLs.
 
-[[pi/tldraw/src/config.ts#resolveConfig]] supports environment overrides and a protected JSON configuration with a separate key file. Relative key paths resolve beside that configuration, and changing a key does not require an extension reload.
+[[pi/tldraw/src/config.ts#resolveConfig]] supports environment overrides and a protected JSON configuration with a separate key file. Relative key paths resolve beside that configuration, and changing a key does not require an extension reload. Preview is enabled by default, with opt-out and Chromium-path settings; it requires a browser only during tool execution.
 
 ## Development deployment
 
@@ -72,4 +84,4 @@ An internal root CA signs the tldraw certificate, while its private key and the 
 
 Development and isolated tests can proceed without a production key, but production SDK use requires an appropriate tldraw license.
 
-Room/asset authorization, safe public exposure, rate limits, quotas, upload/unfurl hardening, retention, backups, and coordinated SDK upgrades remain production gates. An approved hobby license is not itself an implementation of these controls.
+An approved hobby license covers personal/non-commercial production within its host and validity conditions and requires the watermark; it authorizes the same SDK rather than unlocking another API. Room/asset authorization, safe public exposure, rate limits, quotas, upload/unfurl hardening, retention, backups, and coordinated SDK upgrades remain production gates.

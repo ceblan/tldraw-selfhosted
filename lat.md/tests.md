@@ -12,11 +12,11 @@ Diagram generation must produce editable records without allowing malformed call
 
 ### Produces compatible records
 
-Verify that generated pages, shapes, and bindings can be loaded by the pinned SDK and retain the requested labels and relationships.
+Verify that generated pages, shapes, and bindings can be loaded by the pinned SDK and retain the requested labels and relationships. Large node type, conservative dimensions, and detached edge labels must survive schema validation.
 
 ### Handles cyclic graphs
 
-Verify that cycles do not hang layout generation or place multiple node origins at the same coordinates.
+Verify that cycles do not hang layout generation, place multiple node origins at the same coordinates, or lose explicit elbow feedback routing.
 
 ### Rejects malformed diagrams
 
@@ -82,6 +82,10 @@ Verify that an authenticated request with no nodes receives a 400 validation err
 
 Verify that a valid request returns the expected board identity, URL, and SDK version and that its room can subsequently be loaded.
 
+### Updates a board in place
+
+Verify that an authenticated PUT preserves the board identity and URL, persists the revised title, and returns 404 for a missing generated board.
+
 ### Disabled by default
 
 Verify that omitting the explicit API enablement setting leaves creation unavailable even when the rest of the server is running.
@@ -93,6 +97,10 @@ The client must preserve the typed contract and avoid leaking credentials or cre
 ### Creates a board safely
 
 Verify that the client sends the versioned contract and bearer token, returns the typed board result, and excludes the token from that result.
+
+### Updates a board in place
+
+Verify that the client sends one PUT to the existing board URL, keeps the identifier out of the diagram body, and returns the typed result.
 
 ### Sanitizes HTTP errors
 
@@ -128,4 +136,4 @@ The extension must expose the intended model tool and preserve both human- and m
 
 ### Registers the diagram tool
 
-Verify registration, tool annotations, structured board output, clickable URL text, and absence of credentials from the complete tool result.
+Verify registration of create and update tools, their annotations, structured board output, clickable URL text, in-place update execution, and absence of credentials from the complete tool result.

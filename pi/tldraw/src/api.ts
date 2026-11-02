@@ -1,4 +1,4 @@
-import type { BoardResult, DiagramInput } from "./contract.js";
+import type { BoardResult, DiagramInput, UpdateDiagramInput } from "./contract.js";
 
 export interface CreateBoardOptions {
 	baseUrl: string;
@@ -54,9 +54,11 @@ function parseBoardResult(value: unknown): BoardResult {
 	return { boardId, url, snapshotVersion, tldrawSdkVersion };
 }
 
-/** Create exactly one board; automatic retries could create duplicate external artifacts. */
-// @lat: [[architecture#Pi client package]]
-export async function createBoard(input: DiagramInput, options: CreateBoardOptions): Promise<BoardResult> {
+async function requestBoard(
+	input: DiagramInput,
+	options: CreateBoardOptions,
+	request: { method: "POST" | "PUT"; path: string; successStatus: 200 | 201; action: "creation" | "update" },
+): Promise<BoardResult> {
 	const baseUrl = normalizeBaseUrl(options.baseUrl);
 	const apiKey = options.apiKey.trim();
 	if (new TextEncoder().encode(apiKey).length < 32) {
@@ -71,8 +73,8 @@ export async function createBoard(input: DiagramInput, options: CreateBoardOptio
 	const fetchImpl = options.fetchImpl ?? globalThis.fetch;
 
 	try {
-		const response = await fetchImpl(`${baseUrl}/api/pi/v1/boards`, {
-			method: "POST",
+		const response = await fetchImpl(`${baseUrl}${request.path}`, {
+			method: request.method,
 			headers: {
 				Authorization: `Bearer ${apiKey}`,
 				"Content-Type": "application/json",
@@ -82,18 +84,45 @@ export async function createBoard(input: DiagramInput, options: CreateBoardOptio
 			signal,
 		});
 		const body = await responseJson(response);
-		if (response.status !== 201) {
+		if (response.status !== request.successStatus) {
 			const message =
 				isRecord(body) && isRecord(body.error) && typeof body.error.message === "string"
 					? body.error.message.slice(0, 300)
 					: `HTTP ${response.status}`;
-			throw new Error(`tldraw board creation failed: ${message}`);
+			throw new Error(`tldraw board ${request.action} failed: ${message}`);
 		}
 		return parseBoardResult(body);
 	} catch (error) {
 		if (error instanceof Error && error.message.startsWith("tldraw ")) throw error;
-		if (options.signal?.aborted) throw new Error("tldraw board creation was cancelled");
-		if (timeout.aborted) throw new Error("tldraw board creation timed out");
+		if (options.signal?.aborted) throw new Error(`tldraw board ${request.action} was cancelled`);
+		if (timeout.aborted) throw new Error(`tldraw board ${request.action} timed out`);
 		throw new Error(`tldraw API is unreachable at ${baseUrl}`);
 	}
+}
+
+/** Create exactly one board; automatic retries could create duplicate external artifacts. */
+// @lat: [[architecture#Pi client package]]
+export async function createBoard(input: DiagramInput, options: CreateBoardOptions): Promise<BoardResult> {
+	return requestBoard(input, options, {
+		method: "POST",
+		path: "/api/pi/v1/boards",
+		successStatus: 201,
+		action: "creation",
+	});
+}
+
+/** Replace one existing board after visual review, preserving its public URL. */
+// @lat: [[architecture#Visual revision workflow]]
+export async function updateBoard(
+	input: UpdateDiagramInput,
+	options: CreateBoardOptions,
+): Promise<BoardResult> {
+	if (!/^pi-[a-zA-Z0-9_-]+$/.test(input.boardId)) throw new Error("A valid generated boardId is required");
+	const { boardId, ...diagram } = input;
+	return requestBoard(diagram, options, {
+		method: "PUT",
+		path: `/api/pi/v1/boards/${encodeURIComponent(boardId)}`,
+		successStatus: 200,
+		action: "update",
+	});
 }

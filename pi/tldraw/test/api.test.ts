@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createBoard } from "../src/api.js";
+import { createBoard, updateBoard } from "../src/api.js";
 
 const apiKey = "development-client-token-with-at-least-32-bytes";
 const input = {
@@ -34,6 +34,27 @@ test("creates one typed board and keeps credentials out of its result", async ()
 	assert.deepEqual(result, board);
 	assert.equal(JSON.parse(requestBody).kind, "flowchart-v1");
 	assert.equal(JSON.stringify(result).includes(apiKey), false);
+});
+
+// @lat: [[tests#Pi client API#Updates a board in place]]
+test("updates the same board without putting its id in the diagram body", async () => {
+	let requestBody = "";
+	const result = await updateBoard(
+		{ ...input, boardId: board.boardId, title: "Updated flow" },
+		{
+			baseUrl: "http://10.0.5.40:3014",
+			apiKey,
+			fetchImpl: async (url, init) => {
+				assert.equal(url, "http://10.0.5.40:3014/api/pi/v1/boards/pi-test-board");
+				assert.equal(init?.method, "PUT");
+				requestBody = String(init?.body);
+				return new Response(JSON.stringify(board), { status: 200 });
+			},
+		},
+	);
+	assert.deepEqual(result, board);
+	assert.equal(JSON.parse(requestBody).boardId, undefined);
+	assert.equal(JSON.parse(requestBody).title, "Updated flow");
 });
 
 // @lat: [[tests#Pi client API#Sanitizes HTTP errors]]

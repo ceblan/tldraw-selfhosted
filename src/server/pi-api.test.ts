@@ -77,6 +77,31 @@ describe('Pi board API', () => {
 		}
 	})
 
+	// @lat: [[tests#Pi board API#Updates a board in place]]
+	it('updates a generated board without changing its URL', async () => {
+		const created = await createRequest({ authorization: `Bearer ${apiKey}` })
+		const original = created.json()
+		const response = await app.inject({
+			method: 'PUT',
+			url: `/api/pi/v1/boards/${original.boardId}`,
+			headers: { authorization: `Bearer ${apiKey}` },
+			payload: { ...diagram, title: 'Updated answer' },
+		})
+		expect(response.statusCode).toBe(200)
+		expect(response.json()).toMatchObject({ boardId: original.boardId, url: original.url })
+		const boards = await app.inject({ method: 'GET', url: '/api/boards' })
+		expect(boards.json().boards).toEqual([
+			expect.objectContaining({ boardId: original.boardId, title: 'Updated answer' }),
+		])
+		const missing = await app.inject({
+			method: 'PUT',
+			url: '/api/pi/v1/boards/pi-missing',
+			headers: { authorization: `Bearer ${apiKey}` },
+			payload: diagram,
+		})
+		expect(missing.statusCode).toBe(404)
+	})
+
 	// @lat: [[tests#Pi board API#Disabled by default]]
 	it('keeps the control plane disabled by default', async () => {
 		expect(readPiApiConfig({}).enabled).toBe(false)
