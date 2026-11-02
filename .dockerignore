@@ -11,3 +11,4 @@ pi/
 docs/
 .env*
 .tldraw-license-key*
+.traefik/

@@ -7,3 +7,4 @@ dist
 .env
 .env.development
 .tldraw-license-key
+.traefik/

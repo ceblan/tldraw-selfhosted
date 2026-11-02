@@ -1,0 +1,68 @@
+name: tldraw-pi-dev
+
+services:
+  tldraw:
+    image: tldraw-pi:dev
+    container_name: tldraw-pi-dev
+    build:
+      context: .
+      secrets:
+        - tldraw_license_key
+    env_file:
+      - .env
+    environment:
+      PI_API_ENABLED: "true"
+      PUBLIC_BASE_URL: "https://tldraw.emacs30.lan"
+      CORS_ORIGIN: "https://tldraw.emacs30.lan"
+    volumes:
+      - tldraw-pi-dev:/config
+    networks:
+      - edge
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:5858/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  traefik:
+    image: traefik:v3.6.2@sha256:aaf0f6185419a50c74651448c1a5bf4606bd2d2ddb7b8749eed505d55bf8b8ea
+    container_name: tldraw-traefik
+    depends_on:
+      tldraw:
+        condition: service_healthy
+    command:
+      - --global.checknewversion=false
+      - --global.sendanonymoususage=false
+      - --log.level=INFO
+      - --accesslog=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      - --entrypoints.websecure.address=:443
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --providers.file.watch=true
+    ports:
+      - "10.0.5.40:80:80"
+      - "10.0.5.40:443:443"
+    volumes:
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./.traefik/certs:/certs:ro
+    networks:
+      - edge
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+secrets:
+  tldraw_license_key:
+    file: "${TLDRAW_LICENSE_KEY_FILE:-./.tldraw-license-key.example}"
+
+volumes:
+  tldraw-pi-dev:
+
+networks:
+  edge:
+    name: tldraw-pi-edge
+    driver: bridge

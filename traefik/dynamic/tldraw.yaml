@@ -1,0 +1,24 @@
+http:
+  routers:
+    tldraw:
+      rule: Host(`tldraw.emacs30.lan`)
+      entryPoints:
+        - websecure
+      service: tldraw
+      tls: {}
+
+  services:
+    tldraw:
+      loadBalancer:
+        servers:
+          - url: http://tldraw:5858
+
+tls:
+  certificates:
+    - certFile: /certs/tldraw.emacs30.lan.crt
+      keyFile: /certs/tldraw.emacs30.lan.key
+      stores:
+        - default
+  options:
+    default:
+      minVersion: VersionTLS12
