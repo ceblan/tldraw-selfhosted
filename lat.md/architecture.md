@@ -32,6 +32,24 @@ The local Compose stack is a disposable development environment bound to loopbac
 
 The build uses a frozen dependency lockfile, a digest-pinned Node base image, a non-root runtime, and an optional BuildKit secret for a future license key. The existing EMACS-30 container and its volumes are outside this milestone.
 
+## Pi client package
+
+A local Pi package pairs semantic diagram guidance with an executable client that returns an editable board URL.
+
+[[pi/tldraw/extensions/tldraw-create-diagram.ts#tldrawExtension]] registers `tldraw_create_diagram`; the bundled `tldraw-diagrams` skill guides semantic extraction. [[pi/tldraw/src/api.ts#createBoard]] performs one bounded HTTP request without automatic retries, validates the response, and returns structured output without credentials.
+
+## Client configuration
+
+The Pi client resolves its URL and service token only when the tool executes, keeping secrets outside source control and board URLs.
+
+[[pi/tldraw/src/config.ts#resolveConfig]] supports environment overrides and a protected JSON configuration with a separate key file. Relative key paths resolve beside that configuration, and changing a key does not require an extension reload.
+
+## Development deployment
+
+A separate Compose service publishes the development server on the EMACS-30 LAN address at port 3014 with an isolated persistent volume.
+
+`compose.emacs30.yaml` configures the returned board URL and an exact same-origin CORS policy. This is a development service with the SDK development watermark, not a production activation; the existing container on port 3012 remains independent.
+
 ## Licensing and production gates
 
 Development and isolated tests can proceed without a production key, but production SDK use requires an appropriate tldraw license.

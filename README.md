@@ -76,6 +76,22 @@ The URL is the editable room URL. `PUBLIC_BASE_URL` controls the returned URL; i
 
 Writes are not performed by a second process against `.rooms` files. All tldraw packages are pinned to 4.0.2, and the Docker base image is pinned by digest. The image build uses the frozen lockfile. A future license key can be passed with a BuildKit secret named `tldraw_license_key`, without storing it in a Docker layer.
 
+## Pi skill and extension
+
+The `pi/tldraw` package provides `tldraw_create_diagram` and the `tldraw-diagrams` skill. It reads configuration from `~/.config/pi/tldraw.json` and a separate protected key file, then returns both a clickable URL and structured board metadata. See [its README](pi/tldraw/README.md) for installation and configuration.
+
+## EMACS-30 development service
+
+`compose.emacs30.yaml` runs an independent instance at `http://10.0.5.40:3014`, with a named persistent volume and no changes to the original port 3012 container. After checking out this branch on EMACS-30:
+
+```sh
+umask 077
+printf 'PI_API_KEY=%s\n' "$(openssl rand -hex 32)" > .env
+docker compose -f compose.emacs30.yaml up -d --build
+```
+
+Use the same token in the Pi client key file. Plain HTTP and the SDK development watermark make this a LAN development deployment, not a production deployment.
+
 ## Production gates
 
 Do not expose this development service to operators or the Internet yet. A tldraw trial, commercial, or approved hobby license is required for production SDK use; a hobby license requires the watermark. See the [official licensing guide](https://tldraw.dev/community/license).

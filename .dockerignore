@@ -7,5 +7,7 @@ dist
 .github/
 lat.md/
 AGENTS.md
+pi/
+docs/
 .env*
 .tldraw-license-key*

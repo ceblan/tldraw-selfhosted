@@ -53,3 +53,47 @@ Verify that a valid request returns the expected board identity, URL, and SDK ve
 ### Disabled by default
 
 Verify that omitting the explicit API enablement setting leaves creation unavailable even when the rest of the server is running.
+
+## Pi client API
+
+The client must preserve the typed contract and avoid leaking credentials or creating duplicate boards through retries.
+
+### Creates a board safely
+
+Verify that the client sends the versioned contract and bearer token, returns the typed board result, and excludes the token from that result.
+
+### Sanitizes HTTP errors
+
+Verify that API errors remain useful without including the bearer credential.
+
+### Rejects malformed results
+
+Verify that an incomplete success response is not accepted as a created board.
+
+### Honors cancellation
+
+Verify that cancellation aborts the single request and does not trigger another creation attempt.
+
+## Pi client configuration
+
+Client configuration must support protected local secrets and predictable overrides.
+
+### Loads protected file configuration
+
+Verify that the development URL and a key file relative to the JSON configuration resolve correctly.
+
+### Applies environment overrides
+
+Verify that environment credentials take precedence without reading a configured key file.
+
+### Explains missing configuration
+
+Verify that a missing key produces actionable setup guidance before any network request.
+
+## Pi extension
+
+The extension must expose the intended model tool and preserve both human- and machine-readable results.
+
+### Registers the diagram tool
+
+Verify registration, tool annotations, structured board output, clickable URL text, and absence of credentials from the complete tool result.

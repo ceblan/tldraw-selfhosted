@@ -1,0 +1,33 @@
+name: tldraw-pi-dev
+
+services:
+  tldraw:
+    image: tldraw-pi:dev
+    container_name: tldraw-pi-dev
+    build:
+      context: .
+      secrets:
+        - tldraw_license_key
+    env_file:
+      - .env
+    environment:
+      PI_API_ENABLED: "true"
+      PUBLIC_BASE_URL: "http://10.0.5.40:3014"
+      CORS_ORIGIN: "http://10.0.5.40:3014"
+    ports:
+      - "10.0.5.40:3014:5858"
+    volumes:
+      - tldraw-pi-dev:/config
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:5858/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+secrets:
+  tldraw_license_key:
+    file: "${TLDRAW_LICENSE_KEY_FILE:-./.tldraw-license-key.example}"
+
+volumes:
+  tldraw-pi-dev:

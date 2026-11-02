@@ -1,0 +1,20 @@
+{
+  "name": "@ceblan/pi-tldraw",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Create editable self-hosted tldraw flowcharts from Pi",
+  "type": "module",
+  "keywords": ["pi-package"],
+  "pi": {
+    "extensions": ["./extensions/tldraw-create-diagram.ts"],
+    "skills": ["./skills"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

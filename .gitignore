@@ -4,5 +4,6 @@
 node_modules/
 compose.mine.yaml
 dist
+.env
 .env.development
 .tldraw-license-key
