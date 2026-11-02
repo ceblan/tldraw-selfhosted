@@ -60,7 +60,7 @@ The Pi client resolves its URL and service token only when the tool executes, ke
 
 A separate Compose service publishes the development server on the EMACS-30 LAN address at port 3014 with an isolated persistent volume.
 
-`compose.emacs30.yaml` configures the returned board URL and an exact same-origin CORS policy. This is a development service with the SDK development watermark, not a production activation; the existing container on port 3012 remains independent.
+`compose.emacs30.yaml` configures the returned board URL and an exact same-origin CORS policy. The hobby-licensed client retains the required made-with-tldraw watermark. Browser validation requires a secure context such as HTTPS or localhost; plain LAN HTTP lacks Web Crypto and shows the development watermark even when the key is present. This is not production hardening, and the existing container on port 3012 remains independent.
 
 ## Licensing and production gates
 

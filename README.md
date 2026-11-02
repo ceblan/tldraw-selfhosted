@@ -92,7 +92,7 @@ printf 'PI_API_KEY=%s\n' "$(openssl rand -hex 32)" > .env
 docker compose -f compose.emacs30.yaml up -d --build
 ```
 
-Use the same token in the Pi client key file. Plain HTTP and the SDK development watermark make this a LAN development deployment, not a production deployment.
+Use the same token in the Pi client key file. Plain HTTP and the unauthenticated browser plane make this a LAN development deployment, not a production deployment. A hobby key can be supplied with `TLDRAW_LICENSE_KEY_FILE=./.tldraw-license-key`; its required made-with-tldraw watermark remains visible. Browser license validation requires a secure context such as HTTPS or localhost: plain LAN HTTP does not provide Web Crypto and shows the development watermark even when the key is present.
 
 ## Production gates
 
