@@ -1,0 +1,30 @@
+name: tldraw-pi-dev
+
+services:
+  tldraw:
+    build:
+      context: .
+      secrets:
+        - tldraw_license_key
+    image: tldraw-pi:dev
+    environment:
+      PI_API_ENABLED: "true"
+      PI_API_KEY: "${PI_API_KEY:?Set PI_API_KEY in .env.development}"
+      PUBLIC_BASE_URL: "${PUBLIC_BASE_URL:-http://localhost:3012}"
+    ports:
+      - "127.0.0.1:3012:5858"
+    volumes:
+      - tldraw-dev:/config
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:5858/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+secrets:
+  tldraw_license_key:
+    file: "${TLDRAW_LICENSE_KEY_FILE:-./.tldraw-license-key.example}"
+
+volumes:
+  tldraw-dev:

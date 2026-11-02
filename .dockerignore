@@ -3,3 +3,9 @@ node_modules/
 .assets/
 .yarn
 dist
+.git/
+.github/
+lat.md/
+AGENTS.md
+.env*
+.tldraw-license-key*

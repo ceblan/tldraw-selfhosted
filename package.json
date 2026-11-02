@@ -18,11 +18,11 @@
 		"dev-server-bun": "npx bun --watch ./src/server/server.bun.ts",
 		"build": "yarn run build:server && yarn build:client",
 		"dev-client": "vite dev --host",
-		"test-ci": "echo 'No tests yet'",
+		"test-ci": "yarn test",
+		"test": "vitest run --passWithNoTests",
 		"build:server": "tsc",
 		"build:client": "vite build --app",
 		"prod": "NODE_ENV=production node dist/src/server/server.node.js",
-		"test": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
@@ -43,14 +43,18 @@
 		"tldraw": "4.0.2",
 		"tsx": "^4.19.2",
 		"typescript": "^5.8.3",
-		"vite": "^7.0.1"
+		"vite": "^7.0.1",
+		"vitest": "3.2.4"
 	},
 	"dependencies": {
 		"@fastify/cors": "^11.0.1",
 		"@fastify/static": "^8.2.0",
 		"@fastify/websocket": "^11.0.1",
-		"@tldraw/assets": "^4.0.2",
+		"@tldraw/assets": "4.0.2",
+		"@tldraw/store": "4.0.2",
 		"@tldraw/sync-core": "4.0.2",
+		"@tldraw/tlschema": "4.0.2",
+		"@tldraw/utils": "4.0.2",
 		"fastify": "5.4.0",
 		"unfurl.js": "^6.4.0",
 		"ws": "^8.18.0"

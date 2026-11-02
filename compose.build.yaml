@@ -3,10 +3,14 @@ services:
     image: tldraw
     build:
       context: .
-      args:
-        VITE_TLDRAW_LICENSE_KEY:
+      secrets:
+        - tldraw_license_key
     ports:
       - 5858:5858
     volumes:
       - ./data/assets:/config/assets
       - ./data/rooms:/config/rooms
+
+secrets:
+  tldraw_license_key:
+    file: "${TLDRAW_LICENSE_KEY_FILE:-./.tldraw-license-key.example}"
