@@ -1,7 +1,7 @@
 http:
   routers:
     tldraw:
-      rule: Host(`tldraw.emacs30.lan`)
+      rule: Host(`tldraw.iterando.net`)
       entryPoints:
         - websecure
       service: tldraw
@@ -15,8 +15,8 @@ http:
 
 tls:
   certificates:
-    - certFile: /certs/tldraw.emacs30.lan.crt
-      keyFile: /certs/tldraw.emacs30.lan.key
+    - certFile: /certs/tldraw.iterando.net.crt
+      keyFile: /certs/tldraw.iterando.net.key
       stores:
         - default
   options:

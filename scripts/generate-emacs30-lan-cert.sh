@@ -2,7 +2,7 @@
 set -euo pipefail
 
 output_dir="${1:-$HOME/.config/emacs30-lan-ca}"
-hostname="${2:-tldraw.emacs30.lan}"
+hostname="${2:-tldraw.iterando.net}"
 address="${3:-10.0.5.40}"
 ca_key="$output_dir/rootCA.key"
 ca_cert="$output_dir/rootCA.crt"

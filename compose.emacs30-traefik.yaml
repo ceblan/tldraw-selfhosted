@@ -12,8 +12,8 @@ services:
       - .env
     environment:
       PI_API_ENABLED: "true"
-      PUBLIC_BASE_URL: "https://tldraw.emacs30.lan"
-      CORS_ORIGIN: "https://tldraw.emacs30.lan"
+      PUBLIC_BASE_URL: "https://tldraw.iterando.net"
+      CORS_ORIGIN: "https://tldraw.iterando.net"
     volumes:
       - tldraw-pi-dev:/config
     networks:
