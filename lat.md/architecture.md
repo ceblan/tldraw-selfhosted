@@ -58,12 +58,18 @@ The Pi client resolves its URL and service token only when the tool executes, ke
 
 ## Development deployment
 
-A separate Compose service publishes the development server on the EMACS-30 LAN address at port 3014 with an isolated persistent volume.
+Traefik terminates internal HTTPS for tldraw at `https://tldraw.iterando.net`, resolved locally to EMACS-30 without Internet exposure or a direct 3014 listener.
 
-`compose.emacs30.yaml` configures the returned board URL and an exact same-origin CORS policy. The hobby-licensed client retains the required made-with-tldraw watermark. Browser validation requires a secure context such as HTTPS or localhost; plain LAN HTTP lacks Web Crypto and shows the development watermark even when the key is present. This is not production hardening, and the existing container on port 3012 remains independent.
+`compose.emacs30-traefik.yaml` combines both services on an isolated network and reuses the existing persistent volume. Port 80 redirects to port 443. Static file-provider routing avoids mounting the Docker socket or exposing a dashboard. `compose.emacs30.yaml` remains the legacy HTTP rollback path; the original port 3012 container and other services remain independent.
+
+## Internal CA and client trust
+
+An internal root CA signs the tldraw certificate, while its private key and the service key stay outside source control.
+
+`scripts/generate-emacs30-lan-cert.sh` creates or reuses the workstation CA and emits a SAN certificate for `tldraw.iterando.net` and `10.0.5.40`. Only the server certificate/key are copied to the ignored `.traefik/certs` directory on EMACS-30. Browsers trust the public root certificate; Node-based Pi processes additionally require `NODE_EXTRA_CA_CERTS` at startup.
 
 ## Licensing and production gates
 
 Development and isolated tests can proceed without a production key, but production SDK use requires an appropriate tldraw license.
 
-Room/asset authorization, TLS, safe remote access, rate limits, quotas, upload/unfurl hardening, retention, backups, and coordinated SDK upgrades remain production gates. An approved hobby license is not itself an implementation of these controls.
+Room/asset authorization, safe public exposure, rate limits, quotas, upload/unfurl hardening, retention, backups, and coordinated SDK upgrades remain production gates. An approved hobby license is not itself an implementation of these controls.
