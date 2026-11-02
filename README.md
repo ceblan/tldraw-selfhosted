@@ -17,6 +17,8 @@ npx --yes yarn@1.22.22 test
 docker build -t tldraw-pi:dev .
 ```
 
+An optional CI workflow is provided at `docs/ci.example.yml`. Copy it to `.github/workflows/ci.yml` to enable it in a repository whose credentials allow workflow changes.
+
 For the local container:
 
 ```sh
