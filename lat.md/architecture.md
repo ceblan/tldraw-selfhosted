@@ -26,6 +26,12 @@ Generated records are committed through the authoritative live room and saved be
 
 [[src/server/rooms.ts#RoomStore#createBoard]] replaces the SDK's initial blank page and uses one `TLSocketRoom.updateStore()` transaction. Snapshot files are replaced atomically. Other processes must not write these files while the server is live.
 
+## Board registry
+
+The root route lists every durable room snapshot and each editor links back to that index, so boards do not depend on saved URLs.
+
+[[src/server/rooms.ts#RoomStore#listBoards]] flushes dirty live rooms, then reads titles and modification times without loading rooms or creating missing ones. Malformed snapshots are skipped individually. `GET /api/boards` serves this metadata to the browser plane; like the editor, it is unauthenticated in the LAN development environment and requires user authorization before production.
+
 ## Delivery boundary
 
 The local Compose stack is a disposable development environment bound to loopback with an isolated data volume.

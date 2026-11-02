@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
 import type { TLRecord } from '@tldraw/tlschema'
@@ -19,6 +19,12 @@ interface RoomState {
 export interface BoardCreationResult {
 	boardId: string
 	snapshotVersion: number
+}
+
+export interface BoardSummary {
+	boardId: string
+	title: string
+	updatedAt: string
 }
 
 export class RoomStore {
@@ -70,6 +76,58 @@ export class RoomStore {
 			},
 		})
 		return state
+	}
+
+	/** List durable rooms without loading them into memory or creating missing rooms. */
+	// @lat: [[architecture#Board registry]]
+	async listBoards(): Promise<BoardSummary[]> {
+		// Include recent browser edits without waiting for the periodic save.
+		await Promise.all(
+			[...this.rooms.values()]
+				.filter((state) => state.dirty)
+				.map((state) =>
+					this.flushRoom(state.id).catch((error) => {
+						console.warn(`Could not flush room ${state.id} before indexing`, error)
+					}),
+				),
+		)
+
+		let entries
+		try {
+			entries = await readdir(this.directory, { withFileTypes: true })
+		} catch (error) {
+			if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []
+			throw error
+		}
+
+		const boards = await Promise.all(
+			entries
+				.filter((entry) => entry.isFile() && ROOM_ID_PATTERN.test(entry.name))
+				.map(async (entry): Promise<BoardSummary | undefined> => {
+					const path = join(this.directory, entry.name)
+					try {
+						const snapshot = JSON.parse(await readFile(path, 'utf8')) as RoomSnapshot
+						const metadata = await stat(path)
+						const page = snapshot.documents?.find((document) => document.state.typeName === 'page')
+						const pageName =
+							page && 'name' in page.state && typeof page.state.name === 'string'
+								? page.state.name.trim()
+								: ''
+						return {
+							boardId: entry.name,
+							title: pageName || entry.name,
+							updatedAt: metadata.mtime.toISOString(),
+						}
+					} catch (error) {
+						console.warn(`Could not index room ${entry.name}`, error)
+						return undefined
+					}
+				}),
+		)
+
+		return boards
+			.filter((board): board is BoardSummary => board !== undefined)
+			.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.boardId.localeCompare(b.boardId))
 	}
 
 	makeOrLoadRoom(roomId: string): Promise<TLSocketRoom<TLRecord, void>> {

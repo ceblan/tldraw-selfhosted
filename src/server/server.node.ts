@@ -42,6 +42,17 @@ export function buildServer(options: ServerOptions = {}) {
 
 	app.register(async (app) => {
 		// This is the browser collaboration plane, not the authenticated Pi control plane.
+		app.get('/api/boards', async (req, res) => {
+			try {
+				return { boards: await roomStore.listBoards() }
+			} catch (error) {
+				req.log.error(error)
+				return res.code(500).send({
+					error: { code: 'board_index_failed', message: 'Could not list boards' },
+				})
+			}
+		})
+
 		app.get('/api/connect/:roomId', { websocket: true }, async (socket, req) => {
 			const roomId = (req.params as { roomId: string }).roomId
 			if (!/^[a-zA-Z0-9_-]{1,128}$/.test(roomId)) {

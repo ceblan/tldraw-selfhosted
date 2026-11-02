@@ -34,6 +34,22 @@ Verify that an unwritable storage path rejects creation promptly instead of spin
 
 Verify that creation writes the expected records, leaves one generated page, and supports reloading the saved room after closing the original.
 
+### Lists persisted boards
+
+Verify that a fresh store discovers existing snapshots by page title, supplies valid modification times, and skips malformed files without hiding healthy boards.
+
+### Flushes live edits before listing
+
+Verify that indexing persists a dirty browser room first so recent edits and newly created manual boards appear immediately.
+
+## Board index
+
+The browser index must expose persisted boards without depending on URLs retained by the operator.
+
+### Returns persisted board summaries
+
+Verify that the browser metadata endpoint returns the identity and title of a board created through the authenticated Pi API.
+
 ## Pi board API
 
 The HTTP boundary must fail closed and return a useful URL only after successful persistence.

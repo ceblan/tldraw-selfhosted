@@ -63,8 +63,11 @@ function RoomWrapper({ children, roomId }: { children: ReactNode; roomId?: strin
 	return (
 		<div className="RoomWrapper">
 			<div className="RoomWrapper-header">
+				<a className="RoomWrapper-index" href="/">
+					← Todos los diagramas
+				</a>
 				<WifiIcon />
-				<div>{roomId}</div>
+				<div className="RoomWrapper-id">{roomId}</div>
 				<button
 					className="RoomWrapper-copy"
 					onClick={() => {

@@ -92,3 +92,18 @@ describe('Pi board API', () => {
 		}
 	})
 })
+
+describe('Board index', () => {
+	// @lat: [[tests#Board index#Returns persisted board summaries]]
+	it('returns previously created boards for the browser index', async () => {
+		const created = await createRequest({ authorization: `Bearer ${apiKey}` })
+		expect(created.statusCode).toBe(201)
+		const { boardId } = created.json()
+
+		const response = await app.inject({ method: 'GET', url: '/api/boards' })
+		expect(response.statusCode).toBe(200)
+		expect(response.json().boards).toEqual([
+			expect.objectContaining({ boardId, title: diagram.title }),
+		])
+	})
+})

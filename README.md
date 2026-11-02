@@ -2,7 +2,7 @@
 
 Development fork of [FoxxMD/tldraw-selfhosted](https://github.com/FoxxMD/tldraw-selfhosted), based on tldraw **4.0.2**. It retains the browser editor, WebSocket collaboration, and file-backed rooms, and adds a small authenticated API that turns a semantic flowchart into a tldraw document.
 
-**This branch is for development and isolated testing. It is not production-ready and has not been deployed to EMACS-30 or port 3012.**
+**This branch is for development and isolated testing. It is not production-ready. The separate EMACS-30 development instance is available on port 3014; the original port 3012 service is unchanged.**
 
 ## Development prerequisites
 
@@ -82,7 +82,9 @@ The `pi/tldraw` package provides `tldraw_create_diagram` and the `tldraw-diagram
 
 ## EMACS-30 development service
 
-`compose.emacs30.yaml` runs an independent instance at `http://10.0.5.40:3014`, with a named persistent volume and no changes to the original port 3012 container. After checking out this branch on EMACS-30:
+`compose.emacs30.yaml` runs an independent instance at `http://10.0.5.40:3014`, with a named persistent volume and no changes to the original port 3012 container. Open **`http://10.0.5.40:3014/`** to browse all saved boards; every editor also links back to this index. The index is derived from existing room snapshots, so boards created before the index was added remain discoverable. Like the current browser editor, the index is unauthenticated and must gain user authorization before production.
+
+After checking out this branch on EMACS-30:
 
 ```sh
 umask 077
