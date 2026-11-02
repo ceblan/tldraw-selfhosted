@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { uniqueId } from 'tldraw'
+import { filterBoards } from '../board-search'
 import { setLocalStorageItem } from '../localStorage'
 
 interface BoardSummary {
@@ -16,8 +17,11 @@ const WORKER_URL =
 
 export function Root() {
 	const [boards, setBoards] = useState<BoardSummary[]>([])
+	const [query, setQuery] = useState('')
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
+	const searchRef = useRef<HTMLInputElement>(null)
+	const filteredBoards = useMemo(() => filterBoards(boards, query), [boards, query])
 
 	useEffect(() => {
 		const controller = new AbortController()
@@ -47,6 +51,11 @@ export function Root() {
 		window.location.assign(`/${roomId}`)
 	}
 
+	function clearSearch() {
+		setQuery('')
+		searchRef.current?.focus()
+	}
+
 	return (
 		<main className="BoardIndex">
 			<header className="BoardIndex-header">
@@ -71,8 +80,50 @@ export function Root() {
 				<p className="BoardIndex-status">Todavía no hay diagramas guardados.</p>
 			)}
 			{!loading && !error && boards.length > 0 && (
+				<section className="BoardIndex-search" aria-label="Buscar diagramas">
+					<div className="BoardIndex-searchBox">
+						<svg
+							className="BoardIndex-searchIcon"
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2"
+							aria-hidden="true"
+						>
+							<circle cx="11" cy="11" r="7" />
+							<path d="m20 20-4-4" />
+						</svg>
+						<input
+							ref={searchRef}
+							type="search"
+							value={query}
+							onChange={(event) => setQuery(event.target.value)}
+							placeholder="Buscar por título o ID…"
+							aria-label="Buscar diagramas"
+							autoComplete="off"
+							spellCheck={false}
+						/>
+						{query && (
+							<button className="BoardIndex-clear" onClick={clearSearch} aria-label="Limpiar búsqueda">
+								×
+							</button>
+						)}
+					</div>
+					<p className="BoardIndex-results" role="status">
+						{filteredBoards.length} de {boards.length} diagramas
+					</p>
+				</section>
+			)}
+			{!loading && !error && boards.length > 0 && filteredBoards.length === 0 && (
+				<div className="BoardIndex-status">
+					<p>No hay diagramas que coincidan con “{query.trim()}”.</p>
+					<button onClick={clearSearch}>Limpiar búsqueda</button>
+				</div>
+			)}
+			{!loading && !error && filteredBoards.length > 0 && (
 				<ul className="BoardIndex-list">
-					{boards.map((board) => (
+					{filteredBoards.map((board) => (
 						<li key={board.boardId}>
 							<Link className="BoardIndex-board" to={`/${board.boardId}`}>
 								<span className="BoardIndex-title">{board.title}</span>

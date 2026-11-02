@@ -82,7 +82,7 @@ The `pi/tldraw` package provides `tldraw_create_diagram` and the `tldraw-diagram
 
 ## EMACS-30 development service
 
-`compose.emacs30.yaml` runs an independent instance at `http://10.0.5.40:3014`, with a named persistent volume and no changes to the original port 3012 container. Open **`http://10.0.5.40:3014/`** to browse all saved boards; every editor also links back to this index. The index is derived from existing room snapshots, so boards created before the index was added remain discoverable. Like the current browser editor, the index is unauthenticated and must gain user authorization before production.
+`compose.emacs30.yaml` runs an independent instance at `http://10.0.5.40:3014`, with a named persistent volume and no changes to the original port 3012 container. Open **`http://10.0.5.40:3014/`** to browse all saved boards; every editor also links back to this index. The index is derived from existing room snapshots, so boards created before the index was added remain discoverable. Its realtime search normalizes case and accents, supports fuzzy title/ID matching, and presents cards in two columns on wide screens. Like the current browser editor, the index is unauthenticated and must gain user authorization before production.
 
 After checking out this branch on EMACS-30:
 

@@ -115,6 +115,7 @@ body {
 }
 
 .BoardIndex {
+	--board-index-width: 1200px;
 	background: #f5f6f8;
 	box-sizing: border-box;
 	color: #20242a;
@@ -128,7 +129,7 @@ body {
 	gap: 24px;
 	justify-content: space-between;
 	margin: 0 auto 32px;
-	max-width: 960px;
+	max-width: var(--board-index-width);
 }
 
 .BoardIndex-header h1 {
@@ -153,7 +154,7 @@ body {
 .BoardIndex-status button {
 	background: #20242a;
 	border: 0;
-	border-radius: 8px;
+	border-radius: 12px;
 	color: white;
 	cursor: pointer;
 	font: inherit;
@@ -167,34 +168,113 @@ body {
 	background: #3b4656;
 }
 
+.BoardIndex-search {
+	margin: 0 auto 24px;
+	max-width: var(--board-index-width);
+}
+
+.BoardIndex-searchBox {
+	position: relative;
+}
+
+.BoardIndex-searchBox input {
+	background: white;
+	border: 1px solid #dfe3e8;
+	border-radius: 12px;
+	box-sizing: border-box;
+	color: #20242a;
+	font: inherit;
+	font-size: 16px;
+	outline: none;
+	padding: 15px 48px 15px 48px;
+	transition: border-color 120ms ease, box-shadow 120ms ease;
+	width: 100%;
+}
+
+.BoardIndex-searchBox input:focus {
+	border-color: #52617a;
+	box-shadow: 0 0 0 3px rgba(82, 97, 122, 0.14);
+}
+
+.BoardIndex-searchBox input::-webkit-search-cancel-button {
+	appearance: none;
+}
+
+.BoardIndex-searchIcon {
+	color: #687587;
+	height: 20px;
+	left: 17px;
+	pointer-events: none;
+	position: absolute;
+	top: 16px;
+	width: 20px;
+}
+
+.BoardIndex-clear {
+	align-items: center;
+	background: transparent;
+	border: 0;
+	border-radius: 50%;
+	color: #52617a;
+	cursor: pointer;
+	display: flex;
+	font-size: 26px;
+	height: 32px;
+	justify-content: center;
+	line-height: 1;
+	padding: 0;
+	position: absolute;
+	right: 12px;
+	top: 11px;
+	width: 32px;
+}
+
+.BoardIndex-clear:hover {
+	background: #eef1f5;
+}
+
+.BoardIndex-results {
+	color: #687587;
+	font-size: 13px;
+	margin: 8px 4px 0;
+}
+
 .BoardIndex-status {
 	background: white;
 	border: 1px solid #dfe3e8;
 	border-radius: 12px;
 	margin: 0 auto;
-	max-width: 960px;
+	max-width: var(--board-index-width);
 	padding: 24px;
 }
 
 .BoardIndex-list {
 	display: grid;
-	gap: 12px;
+	gap: 16px;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
 	list-style: none;
 	margin: 0 auto;
-	max-width: 960px;
+	max-width: var(--board-index-width);
 	padding: 0;
 }
 
+.BoardIndex-list li {
+	min-width: 0;
+}
+
 .BoardIndex-board {
-	align-items: center;
+	align-items: start;
 	background: white;
 	border: 1px solid #dfe3e8;
 	border-radius: 12px;
+	box-sizing: border-box;
 	color: inherit;
 	display: grid;
 	gap: 6px 20px;
-	grid-template-areas: 'title open' 'id open' 'date open';
+	grid-template-areas: 'title title' 'id id' 'date open';
 	grid-template-columns: minmax(0, 1fr) auto;
+	grid-template-rows: auto auto 1fr;
+	height: 100%;
 	padding: 20px 24px;
 	text-decoration: none;
 }
@@ -220,15 +300,25 @@ body {
 }
 
 .BoardIndex-date {
+	align-self: end;
 	color: #687587;
 	font-size: 13px;
 	grid-area: date;
+	margin-top: 12px;
 }
 
 .BoardIndex-open {
+	align-self: end;
 	color: #315efb;
 	font-weight: 700;
 	grid-area: open;
+	margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+	.BoardIndex-list {
+		grid-template-columns: 1fr;
+	}
 }
 
 @media (max-width: 600px) {

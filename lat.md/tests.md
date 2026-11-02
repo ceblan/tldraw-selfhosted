@@ -50,6 +50,22 @@ The browser index must expose persisted boards without depending on URLs retaine
 
 Verify that the browser metadata endpoint returns the identity and title of a board created through the authenticated Pi API.
 
+## Board search
+
+Client-side search must remain responsive and forgiving while preserving predictable board ordering.
+
+### Normalizes titles and search terms
+
+Verify that case, accents, and multi-term queries match the intended titles and that unrelated queries return no boards.
+
+### Matches fuzzy titles and IDs
+
+Verify that ordered subsequences find titles and that identifiers remain searchable.
+
+### Ranks matches and preserves default order
+
+Verify that earlier exact title matches rank first and an empty query leaves the server's recency order unchanged.
+
 ## Pi board API
 
 The HTTP boundary must fail closed and return a useful URL only after successful persistence.

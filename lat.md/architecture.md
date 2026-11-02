@@ -32,6 +32,12 @@ The root route lists every durable room snapshot and each editor links back to t
 
 [[src/server/rooms.ts#RoomStore#listBoards]] flushes dirty live rooms, then reads titles and modification times without loading rooms or creating missing ones. Malformed snapshots are skipped individually. `GET /api/boards` serves this metadata to the browser plane; like the editor, it is unauthenticated in the LAN development environment and requires user authorization before production.
 
+## Board search
+
+The index filters locally on every keystroke across titles and IDs, with exact and subsequence fuzzy matching and responsive two-column cards.
+
+[[src/client/board-search.ts#filterBoards]] normalizes case and accents, supports multi-term queries, ranks exact matches first, and preserves recency order when the query is empty. Filtering performs no network requests; the UI includes a live result count, clear control, and an explicit no-results state.
+
 ## Delivery boundary
 
 The local Compose stack is a disposable development environment bound to loopback with an isolated data volume.
