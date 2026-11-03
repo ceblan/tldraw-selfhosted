@@ -131,4 +131,16 @@ describe('Board index', () => {
 			expect.objectContaining({ boardId, title: diagram.title }),
 		])
 	})
+
+	// @lat: [[tests#Board index#Deletes board cards through API]]
+	it('deletes a board from the index and returns 404 when it is already gone', async () => {
+		const created = await createRequest({ authorization: `Bearer ${apiKey}` })
+		const { boardId } = created.json()
+		const response = await app.inject({ method: 'DELETE', url: `/api/boards/${boardId}` })
+		expect(response.statusCode).toBe(204)
+		const boards = await app.inject({ method: 'GET', url: '/api/boards' })
+		expect(boards.json().boards).toEqual([])
+		const missing = await app.inject({ method: 'DELETE', url: `/api/boards/${boardId}` })
+		expect(missing.statusCode).toBe(404)
+	})
 })

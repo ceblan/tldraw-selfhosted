@@ -38,6 +38,10 @@ Verify that creation writes the expected records, leaves one generated page, and
 
 Verify that a fresh store discovers existing snapshots by page title, supplies valid modification times, and skips malformed files without hiding healthy boards.
 
+### Deletes persisted boards
+
+Verify that deletion closes the live room, removes its durable snapshot, updates the index, and reports a second deletion as absent.
+
 ### Flushes live edits before listing
 
 Verify that indexing persists a dirty browser room first so recent edits and newly created manual boards appear immediately.
@@ -49,6 +53,10 @@ The browser index must expose persisted boards without depending on URLs retaine
 ### Returns persisted board summaries
 
 Verify that the browser metadata endpoint returns the identity and title of a board created through the authenticated Pi API.
+
+### Deletes board cards through API
+
+Verify that the browser DELETE endpoint returns 204, removes the board from subsequent index responses, and returns 404 when repeated.
 
 ## Board search
 

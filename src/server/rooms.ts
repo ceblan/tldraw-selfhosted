@@ -220,6 +220,27 @@ export class RoomStore {
 		})
 	}
 
+	/** Delete durable content without allowing an in-flight save to recreate the file. */
+	// @lat: [[architecture#Board deletion]]
+	async deleteBoard(boardId: string): Promise<boolean> {
+		if (!ROOM_ID_PATTERN.test(boardId)) return false
+		return this.exclusive(async () => {
+			const state = this.rooms.get(boardId)
+			if (state) {
+				this.rooms.delete(boardId)
+				state.room.close()
+				await state.saving
+			}
+			try {
+				await rm(join(this.directory, boardId))
+				return true
+			} catch (error) {
+				if ((error as NodeJS.ErrnoException).code === 'ENOENT') return state !== undefined
+				throw error
+			}
+		})
+	}
+
 	private persistDirtyRooms() {
 		for (const [roomId, state] of this.rooms) {
 			if (state.dirty) void this.flushRoom(roomId).catch(() => {})

@@ -72,7 +72,7 @@ The URL is the editable room URL. `PUBLIC_BASE_URL` controls the returned URL; i
 
 - `diagram.ts` validates Pi's versioned input contract.
 - `diagram-records.ts` performs deterministic layered layout, conservative text wrapping, larger shape sizing, schema-validated tldraw record generation, explicit arrow anchors, and detached edge labels.
-- `RoomStore.createBoard()` commits records in one `TLSocketRoom.updateStore()` transaction and atomically persists the snapshot before returning; `RoomStore.updateBoard()` does the same in place for visual revisions.
+- `RoomStore.createBoard()` commits records in one `TLSocketRoom.updateStore()` transaction and atomically persists the snapshot before returning; `RoomStore.updateBoard()` does the same in place for visual revisions. `RoomStore.deleteBoard()` closes the room, waits for pending saves, and permanently removes its snapshot.
 - `pi-api.ts` adds bearer authentication, bounded JSON input, and structured errors. No service token is placed in the board URL.
 - `server.node.ts` retains the original browser collaboration plane and wires the control plane into the same process.
 
@@ -86,7 +86,7 @@ The `pi/tldraw` package provides `tldraw_create_diagram`, `tldraw_update_diagram
 
 `compose.emacs30-traefik.yaml` runs Traefik and an independent tldraw instance at **`https://tldraw.iterando.net`**, with the same named persistent volume and no changes to the original port 3012 container or other services. The workstation resolves this hostname to `10.0.5.40` through `/etc/hosts`; no public DNS or Internet exposure is required. Port 80 redirects to HTTPS, port 3014 is no longer published, and Traefik uses static file-provider routes without mounting the Docker socket or exposing its dashboard.
 
-Open **`https://tldraw.iterando.net/`** to browse all saved boards; every editor also links back to this index. The index is derived from existing room snapshots, so boards created before the index was added remain discoverable. Its realtime search normalizes case and accents, supports fuzzy title/ID matching, and presents cards in two columns on wide screens. Like the current browser editor, the index is unauthenticated and must gain user authorization before production.
+Open **`https://tldraw.iterando.net/`** to browse all saved boards; every editor also links back to this index. The index is derived from existing room snapshots, so boards created before the index was added remain discoverable. Its realtime search normalizes case and accents, supports fuzzy title/ID matching, and presents cards in two columns on wide screens. Every card also has a **Borrar** action with confirmation: `DELETE /api/boards/:boardId` closes the live room, waits for pending saves, and removes the durable snapshot before the card disappears. Like the current browser editor, the index and its deletion endpoint are unauthenticated and must gain user authorization before production.
 
 The internal CA private key remains on the workstation under `~/.config/emacs30-lan-ca`, outside source control. `scripts/generate-emacs30-lan-cert.sh` creates the CA if needed and signs the server certificate. Copy only `tldraw.iterando.net.crt` and `tldraw.iterando.net.key` into the ignored `.traefik/certs` directory on EMACS-30. Install the public `rootCA.crt` in browser/system trust and set `NODE_EXTRA_CA_CERTS` to that file before starting Pi.
 
@@ -102,7 +102,7 @@ Use the same Pi API token in the Pi client key file. A hobby key is supplied wit
 
 Do not expose this development service to operators or the Internet yet. A tldraw trial, commercial, or approved hobby license is required for production SDK use; a hobby license requires the watermark. See the [official licensing guide](https://tldraw.dev/community/license).
 
-Before production, the remaining work includes browser room/asset authorization, safe public exposure, rate limiting and quotas, upload/unfurl hardening, retention and backups, idempotent API retries, and a tested persistence upgrade (for example `SQLiteSyncStorage` in a coordinated newer tldraw release). The original file-storage implementation has a short periodic-save window; API creation itself is flushed synchronously. Client and server tldraw versions must be upgraded together.
+Before production, the remaining work includes browser room/asset/index authorization (including destructive deletion), safe public exposure, rate limiting and quotas, upload/unfurl hardening, retention and backups, idempotent API retries, and a tested persistence upgrade (for example `SQLiteSyncStorage` in a coordinated newer tldraw release). The original file-storage implementation has a short periodic-save window; API creation itself is flushed synchronously. Client and server tldraw versions must be upgraded together.
 
 ## Licensing
 

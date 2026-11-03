@@ -53,6 +53,24 @@ export function buildServer(options: ServerOptions = {}) {
 			}
 		})
 
+		app.delete('/api/boards/:boardId', async (req, res) => {
+			try {
+				const { boardId } = req.params as { boardId: string }
+				const deleted = await roomStore.deleteBoard(boardId)
+				if (!deleted) {
+					return res.code(404).send({
+						error: { code: 'board_not_found', message: 'The board does not exist' },
+					})
+				}
+				return res.code(204).send()
+			} catch (error) {
+				req.log.error(error)
+				return res.code(500).send({
+					error: { code: 'board_deletion_failed', message: 'Could not delete the board' },
+				})
+			}
+		})
+
 		app.get('/api/connect/:roomId', { websocket: true }, async (socket, req) => {
 			const roomId = (req.params as { roomId: string }).roomId
 			if (!/^[a-zA-Z0-9_-]{1,128}$/.test(roomId)) {

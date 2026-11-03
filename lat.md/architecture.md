@@ -44,6 +44,12 @@ The root route lists every durable room snapshot and each editor links back to t
 
 [[src/server/rooms.ts#RoomStore#listBoards]] flushes dirty live rooms, then reads titles and modification times without loading rooms or creating missing ones. Malformed snapshots are skipped individually. `GET /api/boards` serves this metadata to the browser plane; like the editor, it is unauthenticated in the LAN development environment and requires user authorization before production.
 
+## Board deletion
+
+Index cards can permanently delete a board after explicit confirmation, removing both its live room and durable snapshot.
+
+[[src/server/rooms.ts#RoomStore#deleteBoard]] serializes deletion with other room operations, closes the live room, waits for in-flight saves, and removes the snapshot without allowing a pending write to recreate it. `DELETE /api/boards/:boardId` returns 204, or 404 when already absent. The browser removes the card only after the response; like the rest of the development browser plane, this endpoint currently lacks user authorization.
+
 ## Board search
 
 The index filters locally on every keystroke across titles and IDs, with exact and subsequence fuzzy matching and responsive two-column cards.

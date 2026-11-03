@@ -114,6 +114,28 @@ describe('room persistence', () => {
 		)
 	})
 
+	// @lat: [[tests#Room persistence#Deletes persisted boards]]
+	it('closes a live room and deletes its durable snapshot exactly once', async () => {
+		const store = new RoomStore(directory, 60_000)
+		stores.push(store)
+		const result = await store.createBoard(
+			parseDiagram({
+				kind: 'flowchart-v1',
+				title: 'Disposable diagram',
+				nodes: [{ id: 'pi', label: 'Pi' }],
+				edges: [],
+			}),
+		)
+		const room = await store.makeOrLoadRoom(result.boardId)
+		expect(await store.deleteBoard(result.boardId)).toBe(true)
+		expect(room.isClosed()).toBe(true)
+		await expect(readFile(join(directory, result.boardId), 'utf8')).rejects.toMatchObject({
+			code: 'ENOENT',
+		})
+		expect(await store.listBoards()).toEqual([])
+		expect(await store.deleteBoard(result.boardId)).toBe(false)
+	})
+
 	// @lat: [[tests#Room persistence#Flushes live edits before listing]]
 	it('flushes dirty browser rooms before building the index', async () => {
 		const store = new RoomStore(directory, 60_000)

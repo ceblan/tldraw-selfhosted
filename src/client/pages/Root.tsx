@@ -20,6 +20,8 @@ export function Root() {
 	const [query, setQuery] = useState('')
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
+	const [deletingId, setDeletingId] = useState<string | null>(null)
+	const [deleteError, setDeleteError] = useState('')
 	const searchRef = useRef<HTMLInputElement>(null)
 	const filteredBoards = useMemo(() => filterBoards(boards, query), [boards, query])
 
@@ -56,6 +58,27 @@ export function Root() {
 		searchRef.current?.focus()
 	}
 
+	// @lat: [[architecture#Board deletion]]
+	async function deleteBoard(board: BoardSummary) {
+		if (!window.confirm(`¿Borrar “${board.title}”? Esta acción no se puede deshacer.`)) return
+		setDeletingId(board.boardId)
+		setDeleteError('')
+		try {
+			const response = await fetch(`${WORKER_URL}/api/boards/${encodeURIComponent(board.boardId)}`, {
+				method: 'DELETE',
+			})
+			if (!response.ok && response.status !== 404) {
+				throw new Error(`Board deletion returned ${response.status}`)
+			}
+			setBoards((current) => current.filter((candidate) => candidate.boardId !== board.boardId))
+		} catch (error) {
+			console.error('Could not delete board', error)
+			setDeleteError(`No se pudo borrar “${board.title}”. Inténtalo de nuevo.`)
+		} finally {
+			setDeletingId(null)
+		}
+	}
+
 	return (
 		<main className="BoardIndex">
 			<header className="BoardIndex-header">
@@ -74,6 +97,11 @@ export function Root() {
 				<div className="BoardIndex-status" role="alert">
 					<p>No se pudo cargar el índice de diagramas.</p>
 					<button onClick={() => window.location.reload()}>Reintentar</button>
+				</div>
+			)}
+			{deleteError && (
+				<div className="BoardIndex-status BoardIndex-deleteError" role="alert">
+					{deleteError}
 				</div>
 			)}
 			{!loading && !error && boards.length === 0 && (
@@ -124,7 +152,7 @@ export function Root() {
 			{!loading && !error && filteredBoards.length > 0 && (
 				<ul className="BoardIndex-list">
 					{filteredBoards.map((board) => (
-						<li key={board.boardId}>
+						<li className="BoardIndex-card" key={board.boardId}>
 							<Link className="BoardIndex-board" to={`/${board.boardId}`}>
 								<span className="BoardIndex-title">{board.title}</span>
 								<code className="BoardIndex-id">{board.boardId}</code>
@@ -135,6 +163,15 @@ export function Root() {
 									Abrir →
 								</span>
 							</Link>
+							<button
+								type="button"
+								className="BoardIndex-delete"
+								onClick={() => void deleteBoard(board)}
+								disabled={deletingId !== null}
+								aria-label={`Borrar ${board.title}`}
+							>
+								{deletingId === board.boardId ? 'Borrando…' : 'Borrar'}
+							</button>
 						</li>
 					))}
 				</ul>

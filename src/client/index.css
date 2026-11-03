@@ -262,10 +262,21 @@ body {
 	min-width: 0;
 }
 
-.BoardIndex-board {
-	align-items: start;
+.BoardIndex-card {
 	background: white;
 	border: 1px solid #dfe3e8;
+	border-radius: 12px;
+	position: relative;
+}
+
+.BoardIndex-card:hover {
+	border-color: #8997aa;
+	box-shadow: 0 4px 16px rgba(32, 36, 42, 0.08);
+}
+
+.BoardIndex-board {
+	align-items: start;
+	background: transparent;
 	border-radius: 12px;
 	box-sizing: border-box;
 	color: inherit;
@@ -279,15 +290,11 @@ body {
 	text-decoration: none;
 }
 
-.BoardIndex-board:hover {
-	border-color: #8997aa;
-	box-shadow: 0 4px 16px rgba(32, 36, 42, 0.08);
-}
-
 .BoardIndex-title {
 	font-size: 20px;
 	font-weight: 700;
 	grid-area: title;
+	padding-right: 68px;
 }
 
 .BoardIndex-id {
@@ -313,6 +320,36 @@ body {
 	font-weight: 700;
 	grid-area: open;
 	margin-top: 12px;
+}
+
+.BoardIndex-delete {
+	background: #fff5f5;
+	border: 1px solid #e5b4b4;
+	border-radius: 8px;
+	color: #a42b2b;
+	cursor: pointer;
+	font: inherit;
+	font-size: 12px;
+	font-weight: 700;
+	padding: 6px 10px;
+	position: absolute;
+	right: 18px;
+	top: 16px;
+}
+
+.BoardIndex-delete:hover {
+	background: #fee2e2;
+	border-color: #d88484;
+}
+
+.BoardIndex-delete:disabled {
+	cursor: wait;
+	opacity: 0.55;
+}
+
+.BoardIndex-deleteError {
+	color: #a42b2b;
+	margin-bottom: 16px;
 }
 
 @media (max-width: 900px) {
